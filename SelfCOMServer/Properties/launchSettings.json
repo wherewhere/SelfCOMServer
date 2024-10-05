@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SelfCOMServer (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "SelfCOMServer (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

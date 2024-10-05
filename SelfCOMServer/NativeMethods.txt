@@ -1,0 +1,4 @@
+﻿CoCreateInstance
+CoRegisterClassObject
+CoResumeClassObjects
+CoRevokeClassObject
