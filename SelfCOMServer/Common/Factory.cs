@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using Windows.Win32;
+using Windows.Win32.System.Com;
 using WinRT;
 using WinRT.Interop;
 
@@ -11,8 +13,6 @@ namespace SelfCOMServer.Common
     public partial class Factory<T, TInterface> : IActivationFactory, IClassFactory where T : TInterface, new()
     {
         private const int E_NOINTERFACE = unchecked((int)0x80004002);
-
-        private static readonly Guid CLSID_Unknown = new("00000000-0000-0000-C000-000000000046");
 
         public nint ActivateInstance() => MarshalInspectable<TInterface>.FromManaged(new T());
 
@@ -28,7 +28,7 @@ namespace SelfCOMServer.Common
                 Marshal.ThrowExceptionForHR(-2147221232);
             }
 
-            if (riid == typeof(TInterface).GUID || riid == CLSID_Unknown)
+            if (riid == typeof(TInterface).GUID || riid == Factory.CLSID_IUnknown)
             {
                 // Create the instance of the .NET object
                 ppvObject = MarshalInspectable<TInterface>.FromManaged(new T());
@@ -44,6 +44,26 @@ namespace SelfCOMServer.Common
         public void LockServer([MarshalAs(UnmanagedType.Bool)] bool fLock)
         {
         }
+    }
+
+    public static partial class Factory
+    {
+        public readonly static Guid CLSID_IUnknown = new("00000000-0000-0000-C000-000000000046");
+
+        internal static T CreateInstance<T>(Guid rclsid, CLSCTX dwClsContext = CLSCTX.CLSCTX_INPROC_SERVER)
+        {
+            Guid riid = CLSID_IUnknown;
+            int hresult = CoCreateInstance(rclsid, 0, (uint)dwClsContext, riid, out nint result);
+            if (hresult < 0)
+            {
+                Marshal.ThrowExceptionForHR(hresult);
+            }
+            return Marshaler<T>.FromAbi(result);
+        }
+
+        /// <inheritdoc cref="PInvoke.CoCreateInstance(in Guid, object, CLSCTX, in Guid, out object)"/>
+        [LibraryImport("ole32.dll")]
+        public static partial int CoCreateInstance(in Guid rclsid, IntPtr pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
     }
 
 #pragma warning disable SYSLIB1096

@@ -1,0 +1,11 @@
+namespace SelfCOMServer.Metadata
+{
+    [contractversion(1)]
+    apicontract SelfCOMServerContract{};
+
+    [contract(SelfCOMServerContract, 1)]
+    interface IRemoteThing
+    {
+        String SayHello();
+    }
+}

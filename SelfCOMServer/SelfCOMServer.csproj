@@ -2,6 +2,7 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <BuiltInComInteropSupport>True</BuiltInComInteropSupport>
+    <CsWinRTIncludes>SelfCOMServer.Metadata</CsWinRTIncludes>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     <EnableMsixTooling>True</EnableMsixTooling>
     <IsAotCompatible>True</IsAotCompatible>
@@ -26,16 +27,20 @@
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.1.5" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <CsWinRTInputs Include="..\WinMD\$(Platform)\$(Configuration)\SelfCOMServer.Metadata.winmd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\WinMD\$(Platform)\$(Configuration)\SelfCOMServer.Metadata.winmd" Visible="False">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Remove="Generated Files\**" />
     <None Remove="AppPackages\**" />
     <None Remove="Generated Files\**" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Page Update="Pages\MainPage.xaml">
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
 </Project>

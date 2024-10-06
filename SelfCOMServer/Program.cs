@@ -1,10 +1,10 @@
 ﻿using SelfCOMServer.Common;
+using SelfCOMServer.Metadata;
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading;
-using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Xaml;
 using Windows.Win32;
@@ -13,10 +13,12 @@ using Windows.Win32.System.Com;
 namespace SelfCOMServer
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(IStringable))]
+    [ComDefaultInterface(typeof(IRemoteThing))]
     [GeneratedComClass]
-    public sealed partial class RemoteThing : IStringable
+    public sealed partial class RemoteThing : IRemoteThing
     {
+        public string SayHello() => ToString();
+
         public override string ToString() =>
             new StringBuilder()
                 .AppendLine("Information")
@@ -36,7 +38,7 @@ namespace SelfCOMServer
                 _comServerExitEvent.Reset();
                 PInvoke.CoRegisterClassObject(
                     new Guid("01153FC5-2F29-4F60-93AD-EFFB97CC9E20"),
-                    new Factory<RemoteThing, IStringable>(),
+                    new Factory<RemoteThing, IRemoteThing>(),
                     CLSCTX.CLSCTX_LOCAL_SERVER,
                     REGCLS.REGCLS_MULTIPLEUSE | REGCLS.REGCLS_SUSPENDED,
                     out uint cookie);
