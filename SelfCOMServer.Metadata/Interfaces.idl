@@ -3,9 +3,24 @@ namespace SelfCOMServer.Metadata
     [contractversion(1)]
     apicontract SelfCOMServerContract{};
 
+    delegate Boolean IsAliveHandler();
+
     [contract(SelfCOMServerContract, 1)]
-    interface IRemoteThing
+    interface ISetMonitor
+    {
+        void SetMonitor(IsAliveHandler handler, Windows.Foundation.TimeSpan period);
+    }
+
+    [contract(SelfCOMServerContract, 1)]
+    interface IRemoteThing requires ISetMonitor, Windows.Foundation.IClosable, Windows.Foundation.IStringable
     {
         String SayHello();
+        IIterable<IRemoteProcess> GetProcesses();
+    }
+
+    [contract(SelfCOMServerContract, 1)]
+    interface IRemoteProcess requires Windows.Foundation.IClosable, Windows.Foundation.IStringable
+    {
+        String ProcessName { get; };
     }
 }

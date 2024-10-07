@@ -1,6 +1,8 @@
-﻿using System;
+﻿using SelfCOMServer.Metadata;
+using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
 using Windows.Win32;
 using Windows.Win32.System.Com;
 using WinRT;
@@ -19,7 +21,7 @@ namespace SelfCOMServer.Common
         public void CreateInstance(
             [MarshalAs(UnmanagedType.Interface)] object pUnkOuter,
             ref Guid riid,
-            out IntPtr ppvObject)
+            out nint ppvObject)
         {
             ppvObject = IntPtr.Zero;
 
@@ -48,7 +50,13 @@ namespace SelfCOMServer.Common
 
     public static partial class Factory
     {
-        public readonly static Guid CLSID_IUnknown = new("00000000-0000-0000-C000-000000000046");
+        public static readonly Guid CLSID_IRemoteThing = new("01153FC5-2F29-4F60-93AD-EFFB97CC9E20");
+        public static readonly Guid CLSID_IUnknown = new("00000000-0000-0000-C000-000000000046");
+
+        public static bool IsAlive() => true;
+
+        public static IRemoteThing CreateRemoteThing() =>
+            CreateInstance<IRemoteThing>(CLSID_IRemoteThing, CLSCTX.CLSCTX_ALL, TimeSpan.FromMinutes(1));
 
         internal static T CreateInstance<T>(Guid rclsid, CLSCTX dwClsContext = CLSCTX.CLSCTX_INPROC_SERVER)
         {
@@ -61,9 +69,60 @@ namespace SelfCOMServer.Common
             return Marshaler<T>.FromAbi(result);
         }
 
+        internal static T CreateInstance<T>(Guid rclsid, CLSCTX dwClsContext, TimeSpan period) where T : ISetMonitor
+        {
+            T results = CreateInstance<T>(rclsid, dwClsContext);
+            results.SetMonitor(IsAlive, period);
+            return results;
+        }
+
         /// <inheritdoc cref="PInvoke.CoCreateInstance(in Guid, object, CLSCTX, in Guid, out object)"/>
         [LibraryImport("ole32.dll")]
-        public static partial int CoCreateInstance(in Guid rclsid, IntPtr pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
+        public static partial int CoCreateInstance(in Guid rclsid, nint pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
+    }
+
+    public sealed partial class RemoteMonitor : IDisposable
+    {
+        private bool disposed;
+        private readonly Timer _timer;
+        private readonly Action _dispose;
+
+        public RemoteMonitor(IsAliveHandler handler, Action dispose, TimeSpan period)
+        {
+            _dispose = dispose;
+            _timer = new(_ =>
+            {
+                bool isAlive = false;
+                try
+                {
+                    isAlive = handler.Invoke();
+                }
+                catch
+                {
+                    isAlive = false;
+                }
+                finally
+                {
+                    if (!isAlive)
+                    {
+                        Dispose();
+                    }
+                }
+            }, null, TimeSpan.Zero, period);
+        }
+
+        ~RemoteMonitor() => Dispose();
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                disposed = true;
+                _timer.Dispose();
+                _dispose?.Invoke();
+                GC.SuppressFinalize(this);
+            }
+        }
     }
 
 #pragma warning disable SYSLIB1096

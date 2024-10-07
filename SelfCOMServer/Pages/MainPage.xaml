@@ -8,5 +8,5 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
-    <TextBlock x:Name="Message" Margin="32" />
+    <ListView x:Name="ListView" />
 </Page>

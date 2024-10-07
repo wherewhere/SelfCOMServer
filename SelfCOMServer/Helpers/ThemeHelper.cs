@@ -29,7 +29,7 @@ namespace SelfCOMServer.Helpers
 
         public static bool IsDarkTheme() => UISettings.GetColorValue(UIColorType.Foreground).IsColorLight();
 
-        public static bool IsColorLight(this Color color) => 5 * color.G + 2 * color.R + color.B > 8 * 128;
+        public static bool IsColorLight(this Color color) => (5 * color.G) + (2 * color.R) + color.B > 8 * 128;
 
         public static async void UpdateSystemCaptionButtonColors()
         {
