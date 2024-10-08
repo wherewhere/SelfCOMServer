@@ -1,9 +1,6 @@
 ﻿using SelfCOMServer.Common;
 using SelfCOMServer.Metadata;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
@@ -28,11 +25,9 @@ namespace SelfCOMServer
 
         ~RemoteThing() => Dispose();
 
-        public string SayHello() => ToString();
-
         public void SetMonitor(IsAliveHandler handler, TimeSpan period) => _monitor = new RemoteMonitor(handler, Dispose, period);
 
-        public IEnumerable<IRemoteProcess> GetProcesses() => Process.GetProcesses().Select(x => new RemoteProcess(x));
+        public IProcessStatic CreateProcessStatic() => new ProcessStatic();
 
         public void Dispose()
         {

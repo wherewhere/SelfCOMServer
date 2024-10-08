@@ -8,5 +8,46 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
-    <ListView x:Name="ListView" />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock
+            x:Name="AppTitle"
+            Padding="12,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            MaxLines="1"
+            Style="{StaticResource CaptionTextBlockStyle}"
+            TextTrimming="CharacterEllipsis"
+            ToolTipService.ToolTip="{Binding Text, RelativeSource={RelativeSource Mode=Self}}" />
+        <ScrollViewer
+            x:Name="ScrollViewer"
+            Grid.Row="1"
+            Padding="4"
+            HorizontalScrollBarVisibility="Auto"
+            HorizontalScrollMode="Auto"
+            VerticalScrollBarVisibility="Auto"
+            VerticalScrollMode="Auto">
+            <RichTextBlock
+                x:Name="Message"
+                FontFamily="{ThemeResource CodeThemeFontFamily}"
+                IsTextSelectionEnabled="True" />
+        </ScrollViewer>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="Input" VerticalAlignment="Center" />
+            <Button
+                Grid.Column="1"
+                VerticalAlignment="Stretch"
+                Click="Button_Click"
+                Content="&#xE724;"
+                FontFamily="{ThemeResource SymbolThemeFontFamily}" />
+        </Grid>
+    </Grid>
 </Page>

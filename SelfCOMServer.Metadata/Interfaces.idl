@@ -6,6 +6,69 @@ namespace SelfCOMServer.Metadata
     delegate Boolean IsAliveHandler();
 
     [contract(SelfCOMServerContract, 1)]
+    interface IAsyncDisposable
+    {
+        Windows.Foundation.IAsyncAction DisposeAsync();
+    }
+
+    [contract(SelfCOMServerContract, 1)]
+    interface ITextReader requires Windows.Foundation.IClosable
+    {
+        Int32 Peek();
+        Windows.Foundation.IAsyncOperation<String> ReadLineAsync();
+        Windows.Foundation.IAsyncOperation<String> ReadToEndAsync();
+    }
+
+    [contract(SelfCOMServerContract, 1)]
+    interface ITextWriter requires IAsyncDisposable, Windows.Foundation.IClosable
+    {
+        Windows.Foundation.IAsyncAction FlushAsync();
+        Windows.Foundation.IAsyncAction WriteAsync(String value);
+    }
+
+    [contract(SelfCOMServerContract, 1)]
+    enum CoProcessWindowStyle
+    {
+        Normal = 0,
+        Hidden,
+        Minimized,
+        Maximized
+    };
+
+    [contract(SelfCOMServerContract, 1)]
+    interface IProcessStartInfo
+    {
+        IVector<String> Argument { get; };
+        String Arguments { get; set; };
+        Boolean CreateNoWindow { get; set; };
+        String FileName { get; set; };
+        Boolean RedirectStandardError { get; set; };
+        Boolean RedirectStandardInput { get; set; };
+        Boolean RedirectStandardOutput { get; set; };
+        Boolean UseShellExecute { get; set; };
+        String Verb { get; set; };
+        String[] Verbs { get; };
+        CoProcessWindowStyle WindowStyle { get; set; };
+        String WorkingDirectory { get; set; };
+    }
+
+    [contract(SelfCOMServerContract, 1)]
+    interface IProcess requires Windows.Foundation.IClosable, Windows.Foundation.IStringable
+    {
+        ITextReader StandardError { get; };
+        ITextWriter StandardInput { get; };
+        ITextReader StandardOutput { get; };
+        String ProcessName { get; };
+    }
+
+    [contract(SelfCOMServerContract, 1)]
+    interface IProcessStatic
+    {
+        IProcess[] GetProcesses();
+        IProcess Start(IProcessStartInfo startInfo);
+    }
+
+    [contract(SelfCOMServerContract, 1)]
     interface ISetMonitor
     {
         void SetMonitor(IsAliveHandler handler, Windows.Foundation.TimeSpan period);
@@ -14,13 +77,6 @@ namespace SelfCOMServer.Metadata
     [contract(SelfCOMServerContract, 1)]
     interface IRemoteThing requires ISetMonitor, Windows.Foundation.IClosable, Windows.Foundation.IStringable
     {
-        String SayHello();
-        IIterable<IRemoteProcess> GetProcesses();
-    }
-
-    [contract(SelfCOMServerContract, 1)]
-    interface IRemoteProcess requires Windows.Foundation.IClosable, Windows.Foundation.IStringable
-    {
-        String ProcessName { get; };
+        IProcessStatic CreateProcessStatic();
     }
 }

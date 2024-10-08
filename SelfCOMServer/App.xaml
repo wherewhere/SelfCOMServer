@@ -9,6 +9,8 @@
                 <!--  Other merged dictionaries here  -->
             </ResourceDictionary.MergedDictionaries>
             <!--  Other app resources here  -->
+            <FontFamily x:Key="CodeThemeFontFamily">Cascadia Code NF,Cascadia Code PL,Cascadia Code,Consolas,Courier New,Liberation Mono,SFMono-Regular,Menlo,Monaco,monospace</FontFamily>
+            <FontFamily x:Key="SymbolThemeFontFamily">Segoe Fluent Icons,Segoe MDL2 Assets,Segoe UI Symbol</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
