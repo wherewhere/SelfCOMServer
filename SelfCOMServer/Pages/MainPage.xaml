@@ -47,7 +47,11 @@
                 VerticalAlignment="Stretch"
                 Click="Button_Click"
                 Content="&#xE724;"
-                FontFamily="{ThemeResource SymbolThemeFontFamily}" />
+                FontFamily="{ThemeResource SymbolThemeFontFamily}">
+                <Button.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="Enter" />
+                </Button.KeyboardAccelerators>
+            </Button>
         </Grid>
     </Grid>
 </Page>

@@ -1,15 +1,10 @@
 ﻿using SelfCOMServer.Metadata;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 
 namespace SelfCOMServer.Common
 {
     /// <inheritdoc cref="ProcessStartInfo"/>
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(IProcessStartInfo))]
-    [GeneratedComClass]
     public sealed partial class RemoteProcessStartInfo(ProcessStartInfo inner) : IProcessStartInfo
     {
         public RemoteProcessStartInfo() : this(new ProcessStartInfo()) { }

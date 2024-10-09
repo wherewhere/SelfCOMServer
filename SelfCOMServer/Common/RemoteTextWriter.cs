@@ -1,16 +1,11 @@
 ﻿using SelfCOMServer.Metadata;
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using Windows.Foundation;
 
 namespace SelfCOMServer.Common
 {
     /// <inheritdoc cref="TextWriter"/>
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(ITextWriter))]
-    [GeneratedComClass]
     public partial class RemoteTextWriter(TextWriter inner) : ITextWriter
     {
         /// <inheritdoc cref="TextWriter.FlushAsync"/>

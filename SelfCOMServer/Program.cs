@@ -2,20 +2,14 @@
 using SelfCOMServer.Metadata;
 using System;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Xaml;
-using Windows.Win32;
-using Windows.Win32.System.Com;
 
 namespace SelfCOMServer
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(IRemoteThing))]
-    [GeneratedComClass]
     public sealed partial class RemoteThing : IRemoteThing
     {
         private bool disposed;
@@ -64,15 +58,11 @@ namespace SelfCOMServer
             {
                 comServerExitEvent = new ManualResetEventSlim(false);
                 comServerExitEvent.Reset();
-                _ = PInvoke.CoRegisterClassObject(
-                    Factory.CLSID_IRemoteThing,
-                    new Factory<RemoteThing, IRemoteThing>(),
-                    CLSCTX.CLSCTX_LOCAL_SERVER,
-                    REGCLS.REGCLS_MULTIPLEUSE,
-                    out uint cookie);
+                RemoteThingFactory factory = new();
+                factory.RegisterClassObject();
                 _ = CheckComRefAsync();
                 comServerExitEvent.Wait();
-                _ = PInvoke.CoRevokeClassObject(cookie);
+                factory.RevokeClassObject();
             }
             else
             {

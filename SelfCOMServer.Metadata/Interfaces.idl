@@ -3,20 +3,18 @@ namespace SelfCOMServer.Metadata
     [contractversion(1)]
     apicontract SelfCOMServerContract{};
 
-    delegate Boolean IsAliveHandler();
-
-    [contract(SelfCOMServerContract, 1)]
-    interface IAsyncDisposable
-    {
-        Windows.Foundation.IAsyncAction DisposeAsync();
-    }
-
     [contract(SelfCOMServerContract, 1)]
     interface ITextReader requires Windows.Foundation.IClosable
     {
         Int32 Peek();
         Windows.Foundation.IAsyncOperation<String> ReadLineAsync();
         Windows.Foundation.IAsyncOperation<String> ReadToEndAsync();
+    }
+
+    [contract(SelfCOMServerContract, 1)]
+    interface IAsyncDisposable
+    {
+        Windows.Foundation.IAsyncAction DisposeAsync();
     }
 
     [contract(SelfCOMServerContract, 1)]
@@ -53,12 +51,29 @@ namespace SelfCOMServer.Metadata
     }
 
     [contract(SelfCOMServerContract, 1)]
+    struct CoDataReceivedEventArgs
+    {
+        String Data;
+    };
+
+    [contract(SelfCOMServerContract, 1)]
+    delegate void CoDataReceivedEventHandler(IInspectable sender, CoDataReceivedEventArgs e);
+
+    [contract(SelfCOMServerContract, 1)]
     interface IProcess requires Windows.Foundation.IClosable, Windows.Foundation.IStringable
     {
         ITextReader StandardError { get; };
         ITextWriter StandardInput { get; };
         ITextReader StandardOutput { get; };
         String ProcessName { get; };
+
+        event CoDataReceivedEventHandler ErrorDataReceived;
+        event CoDataReceivedEventHandler OutputDataReceived;
+
+        void BeginErrorReadLine();
+        void BeginOutputReadLine();
+        void CancelErrorRead();
+        void CancelOutputRead();
     }
 
     [contract(SelfCOMServerContract, 1)]
@@ -67,6 +82,9 @@ namespace SelfCOMServer.Metadata
         IProcess[] GetProcesses();
         IProcess Start(IProcessStartInfo startInfo);
     }
+
+    [contract(SelfCOMServerContract, 1)]
+    delegate Boolean IsAliveHandler();
 
     [contract(SelfCOMServerContract, 1)]
     interface ISetMonitor

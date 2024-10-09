@@ -1,11 +1,13 @@
 using SelfCOMServer.Common;
 using SelfCOMServer.Metadata;
 using System;
-using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.UI;
+using Windows.UI.Text;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
+using Windows.UI.Xaml.Media;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -34,7 +36,10 @@ namespace SelfCOMServer.Pages
                 UseShellExecute = false
             });
             AppTitle.Text = process.ProcessName;
-            _ = ReadLinesAsync();
+            process.OutputDataReceived += OnOutputDataReceived;
+            process.ErrorDataReceived += OnErrorDataReceived;
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e) =>
@@ -43,23 +48,35 @@ namespace SelfCOMServer.Pages
         private IAsyncAction SendCommandAsync(string command) =>
             process.StandardInput.WriteAsync($"{command}{Environment.NewLine}");
 
-        private async Task ReadLinesAsync()
+        private async void OnOutputDataReceived(object sender, CoDataReceivedEventArgs e)
         {
-            ITextReader reader = process.StandardOutput;
-            while (reader.Peek() >= 0)
+            await Dispatcher.ResumeForegroundAsync();
+            Message.Blocks.Add(new Paragraph
             {
-                await ThreadSwitcher.ResumeBackgroundAsync();
-                string line = await reader.ReadLineAsync();
-                await Dispatcher.ResumeForegroundAsync();
-                Message.Blocks.Add(new Paragraph
+                Inlines =
                 {
-                    Inlines =
+                    new Run { Text = e.Data }
+                }
+            });
+            //ScrollViewer.ChangeView(null, ScrollViewer.ScrollableHeight, null);
+        }
+
+        private async void OnErrorDataReceived(object sender, CoDataReceivedEventArgs e)
+        {
+            await Dispatcher.ResumeForegroundAsync();
+            Message.Blocks.Add(new Paragraph
+            {
+                Inlines =
+                {
+                    new Run
                     {
-                        new Run { Text = line }
+                        Text = e.Data,
+                        FontStyle = FontStyle.Italic,
+                        Foreground = new SolidColorBrush(Colors.Red)
                     }
-                });
-                ScrollViewer.ChangeView(null, ScrollViewer.ScrollableHeight, null);
-            }
+                }
+            });
+            //ScrollViewer.ChangeView(null, ScrollViewer.ScrollableHeight, null);
         }
     }
 }

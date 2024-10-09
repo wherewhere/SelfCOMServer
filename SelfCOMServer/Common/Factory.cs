@@ -3,16 +3,14 @@ using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
-using Windows.Win32;
 using Windows.Win32.System.Com;
 using WinRT;
 using WinRT.Interop;
 
 namespace SelfCOMServer.Common
 {
-    [ComVisible(true)]
-    [GeneratedComClass]
-    public partial class Factory<T, TInterface> : IActivationFactory, IClassFactory where T : TInterface, new()
+#pragma warning disable SYSLIB1097
+    public abstract partial class Factory<T, TInterface> : IActivationFactory, IClassFactory where T : TInterface, new()
     {
         private const int E_NOINTERFACE = unchecked((int)0x80004002);
 
@@ -20,7 +18,7 @@ namespace SelfCOMServer.Common
 
         public void CreateInstance(
             [MarshalAs(UnmanagedType.Interface)] object pUnkOuter,
-            ref Guid riid,
+            in Guid riid,
             out nint ppvObject)
         {
             ppvObject = IntPtr.Zero;
@@ -45,6 +43,40 @@ namespace SelfCOMServer.Common
 
         public void LockServer([MarshalAs(UnmanagedType.Bool)] bool fLock)
         {
+        }
+
+        public abstract void RegisterClassObject();
+        public abstract void RevokeClassObject();
+    }
+#pragma warning restore SYSLIB1097
+
+    [GeneratedComClass]
+    public partial class RemoteThingFactory : Factory<RemoteThing, IRemoteThing>
+    {
+        private uint cookie;
+
+        public override void RegisterClassObject()
+        {
+            StrategyBasedComWrappers wrappers = new();
+            int hresult = Factory.CoRegisterClassObject(
+                Factory.CLSID_IRemoteThing,
+                this,
+                (uint)CLSCTX.CLSCTX_LOCAL_SERVER,
+                (int)REGCLS.REGCLS_MULTIPLEUSE,
+                out cookie);
+            if (hresult < 0)
+            {
+                Marshal.ThrowExceptionForHR(hresult);
+            }
+        }
+
+        public override void RevokeClassObject()
+        {
+            int hresult = Factory.CoRevokeClassObject(cookie);
+            if (hresult < 0)
+            {
+                Marshal.ThrowExceptionForHR(hresult);
+            }
         }
     }
 
@@ -76,9 +108,17 @@ namespace SelfCOMServer.Common
             return results;
         }
 
-        /// <inheritdoc cref="PInvoke.CoCreateInstance(in Guid, object, CLSCTX, in Guid, out object)"/>
         [LibraryImport("ole32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         public static partial int CoCreateInstance(in Guid rclsid, nint pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
+
+        [LibraryImport("ole32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        public static partial int CoRegisterClassObject(in Guid rclsid, IClassFactory pUnk, uint dwClsContext, int flags, out uint lpdwRegister);
+
+        [LibraryImport("ole32.dll")]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        public static partial int CoRevokeClassObject(uint dwRegister);
     }
 
     public sealed partial class RemoteMonitor : IDisposable
@@ -125,10 +165,7 @@ namespace SelfCOMServer.Common
         }
     }
 
-#pragma warning disable SYSLIB1096
     // https://docs.microsoft.com/windows/win32/api/unknwn/nn-unknwn-iclassfactory
-    [ComImport]
-    [ComVisible(false)]
     [GeneratedComInterface]
     [Guid("00000001-0000-0000-C000-000000000046")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -136,10 +173,9 @@ namespace SelfCOMServer.Common
     {
         void CreateInstance(
             [MarshalAs(UnmanagedType.Interface)] object pUnkOuter,
-            ref Guid riid,
+            in Guid riid,
             out nint ppvObject);
 
         void LockServer([MarshalAs(UnmanagedType.Bool)] bool fLock);
     }
-#pragma warning restore SYSLIB1096
 }

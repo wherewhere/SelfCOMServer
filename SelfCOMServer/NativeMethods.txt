@@ -1,3 +1,2 @@
-﻿CoCreateInstance
-CoRegisterClassObject
-CoRevokeClassObject
+﻿CLSCTX
+REGCLS
