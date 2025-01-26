@@ -6,7 +6,7 @@ Both COM client and server by oneself
 [![Stargazers](https://img.shields.io/github/stars/wherewhere/SelfCOMServer.svg?label=Stars&style=flat-square)](https://github.com/wherewhere/SelfCOMServer/stargazers "Stargazers")
 
 ## Dictionary
-- [SelfCOMServer](#SelfCOMServer)
+- [SelfCOMServer](#selfcomserver)
   - [Dictionary](#dictionary)
   - [Contributors](#contributors)
 

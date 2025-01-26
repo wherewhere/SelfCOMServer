@@ -13,22 +13,22 @@ namespace SelfCOMServer.Common
     public abstract partial class Factory<T, TInterface> : IActivationFactory, IClassFactory where T : TInterface, new()
     {
         private const int E_NOINTERFACE = unchecked((int)0x80004002);
+        private const int CLASS_E_NOAGGREGATION = unchecked((int)0x80040110);
+
+        private readonly Guid _iid = typeof(TInterface).GUID;
 
         public nint ActivateInstance() => MarshalInspectable<TInterface>.FromManaged(new T());
 
-        public void CreateInstance(
-            [MarshalAs(UnmanagedType.Interface)] object pUnkOuter,
-            in Guid riid,
-            out nint ppvObject)
+        public void CreateInstance(nint pUnkOuter, in Guid riid, out nint ppvObject)
         {
-            ppvObject = IntPtr.Zero;
+            ppvObject = 0;
 
-            if (pUnkOuter != null)
+            if (pUnkOuter != 0)
             {
-                Marshal.ThrowExceptionForHR(-2147221232);
+                Marshal.ThrowExceptionForHR(CLASS_E_NOAGGREGATION);
             }
 
-            if (riid == typeof(TInterface).GUID || riid == Factory.CLSID_IUnknown)
+            if (riid == _iid || riid == Factory.CLSID_IUnknown)
             {
                 // Create the instance of the .NET object
                 ppvObject = MarshalInspectable<TInterface>.FromManaged(new T());
@@ -57,7 +57,6 @@ namespace SelfCOMServer.Common
 
         public override void RegisterClassObject()
         {
-            StrategyBasedComWrappers wrappers = new();
             int hresult = Factory.CoRegisterClassObject(
                 Factory.CLSID_IRemoteThing,
                 this,
@@ -85,15 +84,14 @@ namespace SelfCOMServer.Common
         public static readonly Guid CLSID_IRemoteThing = new("01153FC5-2F29-4F60-93AD-EFFB97CC9E20");
         public static readonly Guid CLSID_IUnknown = new("00000000-0000-0000-C000-000000000046");
 
-        public static bool IsAlive() => true;
+        private static bool IsAlive() => true;
 
         public static IRemoteThing CreateRemoteThing() =>
             CreateInstance<IRemoteThing>(CLSID_IRemoteThing, CLSCTX.CLSCTX_ALL, TimeSpan.FromMinutes(1));
 
         internal static T CreateInstance<T>(Guid rclsid, CLSCTX dwClsContext = CLSCTX.CLSCTX_INPROC_SERVER)
         {
-            Guid riid = CLSID_IUnknown;
-            int hresult = CoCreateInstance(rclsid, 0, (uint)dwClsContext, riid, out nint result);
+            int hresult = CoCreateInstance(rclsid, 0, (uint)dwClsContext, CLSID_IUnknown, out nint result);
             if (hresult < 0)
             {
                 Marshal.ThrowExceptionForHR(hresult);
@@ -108,25 +106,31 @@ namespace SelfCOMServer.Common
             return results;
         }
 
-        [LibraryImport("ole32.dll")]
-        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-        public static partial int CoCreateInstance(in Guid rclsid, nint pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
+        [LibraryImport("api-ms-win-core-com-l1-1-0.dll")]
+        private static partial int CoCreateInstance(in Guid rclsid, nint pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
 
-        [LibraryImport("ole32.dll")]
-        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-        public static partial int CoRegisterClassObject(in Guid rclsid, IClassFactory pUnk, uint dwClsContext, int flags, out uint lpdwRegister);
+        [LibraryImport("api-ms-win-core-com-l1-1-0.dll")]
+        internal static partial int CoRegisterClassObject(in Guid rclsid, IClassFactory pUnk, uint dwClsContext, int flags, out uint lpdwRegister);
 
-        [LibraryImport("ole32.dll")]
-        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
-        public static partial int CoRevokeClassObject(uint dwRegister);
+        [LibraryImport("api-ms-win-core-com-l1-1-0.dll")]
+        internal static partial int CoRevokeClassObject(uint dwRegister);
     }
 
+    /// <summary>
+    /// Represents a monitor that checks if a remote object is alive.
+    /// </summary>
     public sealed partial class RemoteMonitor : IDisposable
     {
         private bool disposed;
         private readonly Timer _timer;
         private readonly Action _dispose;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoteMonitor"/> class.
+        /// </summary>
+        /// <param name="handler">The handler to check if the remote object is alive.</param>
+        /// <param name="dispose">The action to dispose the remote object.</param>
+        /// <param name="period">The period to check if the remote object is alive.</param>
         public RemoteMonitor(IsAliveHandler handler, Action dispose, TimeSpan period)
         {
             _dispose = dispose;
@@ -151,8 +155,12 @@ namespace SelfCOMServer.Common
             }, null, TimeSpan.Zero, period);
         }
 
+        /// <summary>
+        /// Finalizes the instance of the <see cref="RemoteMonitor"/> class.
+        /// </summary>
         ~RemoteMonitor() => Dispose();
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (!disposed)
@@ -168,13 +176,9 @@ namespace SelfCOMServer.Common
     // https://docs.microsoft.com/windows/win32/api/unknwn/nn-unknwn-iclassfactory
     [GeneratedComInterface]
     [Guid("00000001-0000-0000-C000-000000000046")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public partial interface IClassFactory
     {
-        void CreateInstance(
-            [MarshalAs(UnmanagedType.Interface)] object pUnkOuter,
-            in Guid riid,
-            out nint ppvObject);
+        void CreateInstance(nint pUnkOuter, in Guid riid, out nint ppvObject);
 
         void LockServer([MarshalAs(UnmanagedType.Bool)] bool fLock);
     }

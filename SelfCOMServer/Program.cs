@@ -10,19 +10,34 @@ using Windows.UI.Xaml;
 
 namespace SelfCOMServer
 {
+    /// <summary>
+    /// The manage class for remote object.
+    /// </summary>
     public sealed partial class RemoteThing : IRemoteThing
     {
         private bool disposed;
         private RemoteMonitor _monitor;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RemoteThing"/> class.
+        /// </summary>
         public RemoteThing() => Program.RefCount++;
 
+        /// <summary>
+        /// Finalizes the instance of the <see cref="RemoteThing"/> class.
+        /// </summary>
         ~RemoteThing() => Dispose();
 
+        /// <summary>
+        /// Sets the monitor to check if the remote object is alive.
+        /// </summary>
+        /// <param name="handler">The handler to check if the remote object is alive.</param>
+        /// <param name="period">The period to check if the remote object is alive.</param>
         public void SetMonitor(IsAliveHandler handler, TimeSpan period) => _monitor = new RemoteMonitor(handler, Dispose, period);
 
         public IProcessStatic CreateProcessStatic() => new ProcessStatic();
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             if (!disposed)
@@ -37,6 +52,7 @@ namespace SelfCOMServer
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString() =>
             new StringBuilder()
                 .AppendLine("Information")
