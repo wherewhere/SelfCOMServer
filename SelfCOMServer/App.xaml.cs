@@ -2,9 +2,13 @@
 using SelfCOMServer.Helpers;
 using SelfCOMServer.Pages;
 using System;
+using System.Runtime.Versioning;
+using System.Threading;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.Core;
+using Windows.Foundation.Metadata;
+using Windows.System;
 using Windows.System.Profile;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -21,6 +25,11 @@ namespace SelfCOMServer
     /// </summary>
     public partial class App : Application
     {
+#pragma warning disable CA1416
+        [SupportedOSPlatformGuard("Windows10.0.17134.0")]
+        public static bool IsRevealFocusVisualKindSupported { get; } = ApiInformation.IsEnumNamedValuePresent("Windows.UI.Xaml.FocusVisualKind", "Reveal");
+#pragma warning restore CA1416
+
         /// <summary>
         /// 初始化单一实例应用程序对象。这是执行的创作代码的第一行，
         /// 已执行，逻辑上等同于 main() 或 WinMain()。
@@ -30,7 +39,20 @@ namespace SelfCOMServer
             InitializeComponent();
             Suspending += OnSuspending;
             UnhandledException += Application_UnhandledException;
-            if (AnalyticsInfo.VersionInfo.DeviceFamily == "Windows.Xbox") { FocusVisualKind = FocusVisualKind.Reveal; }
+            if (IsRevealFocusVisualKindSupported && AnalyticsInfo.VersionInfo.DeviceFamily == "Windows.Xbox")
+            {
+                FocusVisualKind = FocusVisualKind.Reveal;
+            }
+        }
+
+        protected override void OnWindowCreated(WindowCreatedEventArgs args)
+        {
+            if (SynchronizationContext.Current == null)
+            {
+                DispatcherQueueSynchronizationContext context = new(args.Window.CoreWindow.DispatcherQueue);
+                SynchronizationContext.SetSynchronizationContext(context);
+            }
+            base.OnWindowCreated(args);
         }
 
         /// <summary>
@@ -89,15 +111,11 @@ namespace SelfCOMServer
 
         #endregion
 
-        private void EnsureWindow(IActivatedEventArgs e)
+        private static void EnsureWindow(IActivatedEventArgs e)
         {
             if (Window.Current is not Window window) { return; }
 
-            if (!isLoaded)
-            {
-                RegisterExceptionHandlingSynchronizationContext();
-                isLoaded = true;
-            }
+            RegisterExceptionHandlingSynchronizationContext();
 
             WindowHelper.TrackWindow(window);
 
@@ -178,16 +196,15 @@ namespace SelfCOMServer
         /// </summary>
         private static void RegisterExceptionHandlingSynchronizationContext()
         {
-            ExceptionHandlingSynchronizationContext
-                .Register()
-                .UnhandledException += SynchronizationContext_UnhandledException;
+            if (ExceptionHandlingSynchronizationContext.TryRegister(out ExceptionHandlingSynchronizationContext context))
+            {
+                context.UnhandledException += SynchronizationContext_UnhandledException;
+            }
         }
 
         private static void SynchronizationContext_UnhandledException(object sender, Common.UnhandledExceptionEventArgs e)
         {
             e.Handled = true;
         }
-
-        private bool isLoaded;
     }
 }

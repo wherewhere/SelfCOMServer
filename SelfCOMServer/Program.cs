@@ -70,7 +70,7 @@ namespace SelfCOMServer
 
         private static void Main(string[] args)
         {
-            if (args is ["-RegisterProcessAsComServer"])
+            if (args is ["-RegisterProcessAsComServer", ..])
             {
                 comServerExitEvent = new ManualResetEventSlim(false);
                 comServerExitEvent.Reset();
