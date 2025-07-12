@@ -1,27 +1,17 @@
 ﻿using SelfCOMServer.Metadata;
-using System;
 using System.IO;
 using Windows.Foundation;
+using WinRTWrapper.CodeAnalysis;
 
 namespace SelfCOMServer.Common
 {
-    /// <inheritdoc cref="TextReader"/>
-    public partial class RemoteTextReader(TextReader inner) : ITextReader
+    [WinRTWrapperMarshaller(typeof(TextReader), typeof(ITextReader))]
+    [GenerateWinRTWrapper(typeof(TextReader), GenerateMember.Defined)]
+    public partial class RemoteTextReader : ITextReader
     {
-        /// <inheritdoc cref="TextReader.Peek"/>
-        public int Peek() => inner.Peek();
-
-        /// <inheritdoc cref="TextReader.ReadLineAsync"/>
-        public IAsyncOperation<string> ReadLineAsync() => inner.ReadLineAsync().AsAsyncOperation();
-
-        /// <inheritdoc cref="TextReader.ReadToEndAsync"/>
-        public IAsyncOperation<string> ReadToEndAsync() => inner.ReadToEndAsync().AsAsyncOperation();
-
-        /// <inheritdoc cref="TextReader.Dispose"/>
-        public void Dispose()
-        {
-            inner.Dispose();
-            GC.SuppressFinalize(this);
-        }
+        public partial int Peek();
+        public partial IAsyncOperation<string> ReadLineAsync();
+        public partial IAsyncOperation<string> ReadToEndAsync();
+        public partial void Dispose();
     }
 }

@@ -1,90 +1,41 @@
 ﻿using SelfCOMServer.Metadata;
 using System.Collections.Generic;
 using System.Diagnostics;
+using WinRTWrapper.CodeAnalysis;
 
 namespace SelfCOMServer.Common
 {
-    /// <inheritdoc cref="ProcessStartInfo"/>
-    public sealed partial class RemoteProcessStartInfo(ProcessStartInfo inner) : IProcessStartInfo
+    [WinRTWrapperMarshaller(typeof(ProcessStartInfo), typeof(IProcessStartInfo))]
+    [GenerateWinRTWrapper(typeof(ProcessStartInfo), GenerateMember.Defined)]
+    public sealed partial class RemoteProcessStartInfo : IProcessStartInfo
     {
+        /// <inheritdoc cref="ProcessStartInfo()"/>
         public RemoteProcessStartInfo() : this(new ProcessStartInfo()) { }
 
         /// <inheritdoc cref="ProcessStartInfo.Argument"/>
-        public IList<string> Argument => new CollectionVector<string>(inner.ArgumentList);
+        public IList<string> Argument => target.ArgumentList.AsVector();
 
-        /// <inheritdoc cref="ProcessStartInfo.Arguments"/>
-        public string Arguments
-        {
-            get => inner.Arguments;
-            set => inner.Arguments = value;
-        }
+        public partial string Arguments { get; set; }
+        public partial bool CreateNoWindow { get; set; }
+        public partial string FileName { get; set; }
+        public partial bool RedirectStandardError { get; set; }
+        public partial bool RedirectStandardInput { get; set; }
+        public partial bool RedirectStandardOutput { get; set; }
+        public partial bool UseShellExecute { get; set; }
+        public partial string Verb { get; set; }
+        public partial string[] Verbs { get; }
 
-        /// <inheritdoc cref="ProcessStartInfo.CreateNoWindow"/>
-        public bool CreateNoWindow
-        {
-            get => inner.CreateNoWindow;
-            set => inner.CreateNoWindow = value;
-        }
-
-        /// <inheritdoc cref="ProcessStartInfo.FileName"/>
-        public string FileName
-        {
-            get => inner.FileName;
-            set => inner.FileName = value;
-        }
-
-        /// <inheritdoc cref="ProcessStartInfo.RedirectStandardError"/>
-        public bool RedirectStandardError
-        {
-            get => inner.RedirectStandardError;
-            set => inner.RedirectStandardError = value;
-        }
-
-        /// <inheritdoc cref="ProcessStartInfo.RedirectStandardInput"/>
-        public bool RedirectStandardInput
-        {
-            get => inner.RedirectStandardInput;
-            set => inner.RedirectStandardInput = value;
-        }
-
-        /// <inheritdoc cref="ProcessStartInfo.RedirectStandardOutput"/>
-        public bool RedirectStandardOutput
-        {
-            get => inner.RedirectStandardOutput;
-            set => inner.RedirectStandardOutput = value;
-        }
-
-        /// <inheritdoc cref="ProcessStartInfo.UseShellExecute"/>
-        public bool UseShellExecute
-        {
-            get => inner.UseShellExecute;
-            set => inner.UseShellExecute = value;
-        }
-
-        /// <inheritdoc cref="ProcessStartInfo.Verb"/>
-        public string Verb
-        {
-            get => inner.Verb;
-            set => inner.Verb = value;
-        }
-
-        /// <inheritdoc cref="ProcessStartInfo.Verbs"/>
-        public string[] Verbs => inner.Verbs;
-
+        /// <inheritdoc cref="ProcessStartInfo.WindowStyle"/>
         public CoProcessWindowStyle WindowStyle
         {
-            get => (CoProcessWindowStyle)inner.WindowStyle;
-            set => inner.WindowStyle = (ProcessWindowStyle)value;
+            get => (CoProcessWindowStyle)target.WindowStyle;
+            set => target.WindowStyle = (ProcessWindowStyle)value;
         }
 
-        /// <inheritdoc cref="ProcessStartInfo.WorkingDirectory"/>
-        public string WorkingDirectory
-        {
-            get => inner.WorkingDirectory;
-            set => inner.WorkingDirectory = value;
-        }
+        public partial string WorkingDirectory { get; set; }
 
-        public ProcessStartInfo ToProcessStartInfo() => inner;
+        /// <inheritdoc cref="ConvertToManaged(IProcessStartInfo)"/>
+        public ProcessStartInfo ToProcessStartInfo() => target;
     }
 
     public static class ProcessStartInfoExtensions

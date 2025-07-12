@@ -1,27 +1,17 @@
 ﻿using SelfCOMServer.Metadata;
-using System;
 using System.IO;
 using Windows.Foundation;
+using WinRTWrapper.CodeAnalysis;
 
 namespace SelfCOMServer.Common
 {
-    /// <inheritdoc cref="TextWriter"/>
-    public partial class RemoteTextWriter(TextWriter inner) : ITextWriter
+    [WinRTWrapperMarshaller(typeof(TextWriter), typeof(ITextWriter))]
+    [GenerateWinRTWrapper(typeof(TextWriter), GenerateMember.Defined)]
+    public partial class RemoteTextWriter : ITextWriter
     {
-        /// <inheritdoc cref="TextWriter.FlushAsync"/>
-        public IAsyncAction FlushAsync() => inner.FlushAsync().AsAsyncAction();
-
-        /// <inheritdoc cref="TextWriter.WriteAsync(string?)"/>
-        public IAsyncAction WriteAsync(string value) => inner.WriteAsync(value).AsAsyncAction();
-
-        /// <inheritdoc cref="TextWriter.Dispose"/>
-        public void Dispose()
-        {
-            inner.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc cref="TextWriter.DisposeAsync"/>
-        public IAsyncAction DisposeAsync() => inner.DisposeAsync().AsTask().AsAsyncAction();
+        public partial IAsyncAction FlushAsync();
+        public partial IAsyncAction WriteAsync(string value);
+        public partial void Dispose();
+        public partial IAsyncAction DisposeAsync();
     }
 }

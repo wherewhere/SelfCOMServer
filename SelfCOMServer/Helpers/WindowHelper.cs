@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
-using Windows.Foundation.Metadata;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -19,11 +17,6 @@ namespace SelfCOMServer.Helpers
     /// </summary>
     public static class WindowHelper
     {
-#pragma warning disable CA1416
-        [SupportedOSPlatformGuard("Windows10.0.18362.0")]
-        public static bool IsXamlRootSupported { get; } = ApiInformation.IsPropertyPresent("Windows.UI.Xaml.UIElement", "XamlRoot");
-#pragma warning restore CA1416
-
         public static async Task<bool> CreateWindowAsync(Action<Window> launched)
         {
             CoreApplicationView newView = CoreApplication.CreateNewView();
@@ -50,12 +43,6 @@ namespace SelfCOMServer.Helpers
                 ActiveWindows[window.Dispatcher] = window;
             }
         }
-
-        public static UIElement GetXAMLRoot(this UIElement element) =>
-            IsXamlRootSupported && element.XamlRoot != null
-                ? element.XamlRoot.Content
-                : Window.Current is Window window
-                    ? window.Content : null;
 
         public static Dictionary<CoreDispatcher, Window> ActiveWindows { get; } = [];
     }

@@ -4,28 +4,29 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using WinRTWrapper.CodeAnalysis;
 
 namespace SelfCOMServer.Common
 {
-    /// <inheritdoc cref="Process"/>
-    public partial class RemoteProcess(Process inner) : IProcess
+    [WinRTWrapperMarshaller(typeof(Process), typeof(IProcess))]
+    [GenerateWinRTWrapper(typeof(Process), GenerateMember.Defined)]
+    public partial class RemoteProcess : IProcess
     {
-        /// <inheritdoc cref="Process.ProcessName"/>
-        public string ProcessName => inner.ProcessName;
+        public partial string ProcessName { get; }
 
         /// <inheritdoc cref="Process.StandardError"/>
-        public ITextReader StandardError => new RemoteTextReader(inner.StandardError);
+        public ITextReader StandardError => new RemoteTextReader(target.StandardError);
 
         /// <inheritdoc cref="Process.ProcessName"/>
-        public ITextWriter StandardInput => new RemoteTextWriter(inner.StandardInput);
+        public ITextWriter StandardInput => new RemoteTextWriter(target.StandardInput);
 
         /// <inheritdoc cref="Process.StandardOutput"/>
-        public ITextReader StandardOutput => new RemoteTextReader(inner.StandardOutput);
+        public ITextReader StandardOutput => new RemoteTextReader(target.StandardOutput);
 
         /// <inheritdoc cref="Process.StartInfo"/>
         public IProcessStartInfo StartInfo
         {
-            get => new RemoteProcessStartInfo(inner.StartInfo);
+            get => new RemoteProcessStartInfo(target.StartInfo);
             set => value.ToProcessStartInfo();
         }
 
@@ -37,14 +38,14 @@ namespace SelfCOMServer.Common
             {
                 void wrapper(object sender, DataReceivedEventArgs e) => value(this, new CoDataReceivedEventArgs(e.Data));
                 DataReceivedEventHandler handler = wrapper;
-                inner.ErrorDataReceived += handler;
+                target.ErrorDataReceived += handler;
                 errorDataReceived.Add(value, handler);
             }
             remove
             {
                 if (errorDataReceived.TryGetValue(value, out DataReceivedEventHandler handler))
                 {
-                    inner.ErrorDataReceived -= handler;
+                    target.ErrorDataReceived -= handler;
                     errorDataReceived.Remove(value);
                 }
             }
@@ -58,47 +59,39 @@ namespace SelfCOMServer.Common
             {
                 void wrapper(object sender, DataReceivedEventArgs e) => value(this, new CoDataReceivedEventArgs(e.Data));
                 DataReceivedEventHandler handler = wrapper;
-                inner.OutputDataReceived += handler;
+                target.OutputDataReceived += handler;
                 outputDataReceived.Add(value, handler);
             }
             remove
             {
                 if (outputDataReceived.TryGetValue(value, out DataReceivedEventHandler handler))
                 {
-                    inner.OutputDataReceived -= handler;
+                    target.OutputDataReceived -= handler;
                     outputDataReceived.Remove(value);
                 }
             }
         }
 
-        /// <inheritdoc cref="Process.BeginErrorReadLine"/>
-        public void BeginErrorReadLine() => inner.BeginErrorReadLine();
-
-        /// <inheritdoc cref="Process.BeginOutputReadLine"/>
-        public void BeginOutputReadLine() => inner.BeginOutputReadLine();
-
-        /// <inheritdoc cref="Process.CancelErrorRead"/>
-        public void CancelErrorRead() => inner.CancelErrorRead();
-
-        /// <inheritdoc cref="Process.CancelOutputRead"/>
-        public void CancelOutputRead() => inner.CancelOutputRead();
+        public partial void BeginErrorReadLine();
+        public partial void BeginOutputReadLine();
+        public partial void CancelErrorRead();
+        public partial void CancelOutputRead();
 
         /// <inheritdoc cref="Component.Dispose"/>
         public void Dispose()
         {
-            inner.Dispose();
+            target.Dispose();
             GC.SuppressFinalize(this);
         }
 
-        /// <inheritdoc cref="Process.ToString"/>
-        public override string ToString() => inner.ToString();
+        public override partial string ToString();
     }
 
     /// <inheritdoc cref="Process"/>
     public sealed partial class ProcessStatic : IProcessStatic
     {
         /// <inheritdoc cref="Process.GetProcesses()"/>
-        public IProcess[] GetProcesses() => Process.GetProcesses().Select(x => new RemoteProcess(x)).ToArray();
+        public IProcess[] GetProcesses() => [.. Process.GetProcesses().Select(x => new RemoteProcess(x))];
 
         public IProcess Start(IProcessStartInfo startInfo) =>
             Process.Start(startInfo.ToProcessStartInfo()) is Process process
