@@ -1,6 +1,4 @@
 ﻿using SelfCOMServer.Metadata;
-using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -13,22 +11,14 @@ namespace SelfCOMServer.Common
     public partial class RemoteProcess : IProcess
     {
         public partial string ProcessName { get; }
-
-        /// <inheritdoc cref="Process.StandardError"/>
-        public ITextReader StandardError => new RemoteTextReader(target.StandardError);
-
-        /// <inheritdoc cref="Process.ProcessName"/>
-        public ITextWriter StandardInput => new RemoteTextWriter(target.StandardInput);
-
-        /// <inheritdoc cref="Process.StandardOutput"/>
-        public ITextReader StandardOutput => new RemoteTextReader(target.StandardOutput);
-
-        /// <inheritdoc cref="Process.StartInfo"/>
-        public IProcessStartInfo StartInfo
-        {
-            get => new RemoteProcessStartInfo(target.StartInfo);
-            set => value.ToProcessStartInfo();
-        }
+        [WinRTWrapperMarshalUsing(typeof(RemoteTextReader))]
+        public partial ITextReader StandardError { get; }
+        [WinRTWrapperMarshalUsing(typeof(RemoteTextWriter))]
+        public partial ITextWriter StandardInput { get; }
+        [WinRTWrapperMarshalUsing(typeof(RemoteTextReader))]
+        public partial ITextReader StandardOutput { get; }
+        [WinRTWrapperMarshalUsing(typeof(RemoteProcessStartInfo))]
+        public partial IProcessStartInfo StartInfo { get; set; }
 
         private readonly ConditionalWeakTable<CoDataReceivedEventHandler, DataReceivedEventHandler> errorDataReceived = [];
         /// <inheritdoc cref="Process.ErrorDataReceived"/>
@@ -76,14 +66,7 @@ namespace SelfCOMServer.Common
         public partial void BeginOutputReadLine();
         public partial void CancelErrorRead();
         public partial void CancelOutputRead();
-
-        /// <inheritdoc cref="Component.Dispose"/>
-        public void Dispose()
-        {
-            target.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
+        public partial void Dispose();
         public override partial string ToString();
     }
 

@@ -12,6 +12,15 @@ namespace SelfCOMServer.Common
         /// <inheritdoc cref="ProcessStartInfo()"/>
         public RemoteProcessStartInfo() : this(new ProcessStartInfo()) { }
 
+        /// <inheritdoc cref="ProcessStartInfo(string)"/>
+        public RemoteProcessStartInfo(string fileName) : this(new ProcessStartInfo(fileName)) { }
+
+        /// <inheritdoc cref="ProcessStartInfo(string, string)"/>
+        public RemoteProcessStartInfo(string fileName, string arguments) : this(new ProcessStartInfo(fileName, arguments)) { }
+
+        /// <inheritdoc cref="ProcessStartInfo(string, IEnumerable{string})"/>
+        public RemoteProcessStartInfo(string fileName, IEnumerable<string> arguments) : this(new ProcessStartInfo(fileName, arguments)) { }
+
         /// <inheritdoc cref="ProcessStartInfo.Argument"/>
         public IList<string> Argument => target.ArgumentList.AsVector();
 
@@ -34,27 +43,33 @@ namespace SelfCOMServer.Common
 
         public partial string WorkingDirectory { get; set; }
 
-        /// <inheritdoc cref="ConvertToManaged(IProcessStartInfo)"/>
-        public ProcessStartInfo ToProcessStartInfo() => target;
+        /// <summary>
+        /// Converts a wrapper type <see cref="IProcessStartInfo"/> to a managed type <see cref="ProcessStartInfo"/>.
+        /// </summary>
+        /// <param name="wrapper">The wrapper type to convert.</param>
+        /// <returns>The converted managed type.</returns>
+        public static ProcessStartInfo ConvertToManaged(IProcessStartInfo wrapper) =>
+            wrapper is RemoteProcessStartInfo remoteStartInfo
+                ? remoteStartInfo.target
+                : new ProcessStartInfo
+                {
+                    Arguments = wrapper.Arguments,
+                    CreateNoWindow = wrapper.CreateNoWindow,
+                    FileName = wrapper.FileName,
+                    RedirectStandardError = wrapper.RedirectStandardError,
+                    RedirectStandardInput = wrapper.RedirectStandardInput,
+                    RedirectStandardOutput = wrapper.RedirectStandardOutput,
+                    UseShellExecute = wrapper.UseShellExecute,
+                    Verb = wrapper.Verb,
+                    WindowStyle = (ProcessWindowStyle)wrapper.WindowStyle,
+                    WorkingDirectory = wrapper.WorkingDirectory
+                };
     }
 
     public static class ProcessStartInfoExtensions
     {
+        /// <inheritdoc cref="RemoteProcessStartInfo.ConvertToManaged(IProcessStartInfo)"/>
         public static ProcessStartInfo ToProcessStartInfo(this IProcessStartInfo startInfo) =>
-            startInfo is RemoteProcessStartInfo remoteStartInfo
-                ? remoteStartInfo.ToProcessStartInfo()
-                : new ProcessStartInfo
-                {
-                    Arguments = startInfo.Arguments,
-                    CreateNoWindow = startInfo.CreateNoWindow,
-                    FileName = startInfo.FileName,
-                    RedirectStandardError = startInfo.RedirectStandardError,
-                    RedirectStandardInput = startInfo.RedirectStandardInput,
-                    RedirectStandardOutput = startInfo.RedirectStandardOutput,
-                    UseShellExecute = startInfo.UseShellExecute,
-                    Verb = startInfo.Verb,
-                    WindowStyle = (ProcessWindowStyle)startInfo.WindowStyle,
-                    WorkingDirectory = startInfo.WorkingDirectory
-                };
+            RemoteProcessStartInfo.ConvertToManaged(startInfo);
     }
 }
