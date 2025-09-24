@@ -1,0 +1,18 @@
+<Solution>
+  <Configurations>
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/libs/">
+    <Project Path="../WinRTWrapper/WinRTWrapper.SourceGenerators/WinRTWrapper.SourceGenerators.csproj" />
+  </Folder>
+  <Project Path="SelfCOMServer.Metadata/SelfCOMServer.Metadata.vcxproj" Id="909e1397-b1b9-4772-9266-34833a0b277c" />
+  <Project Path="SelfCOMServer/SelfCOMServer.csproj">
+    <BuildDependency Project="SelfCOMServer.Metadata/SelfCOMServer.Metadata.vcxproj" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+    <Deploy />
+  </Project>
+</Solution>

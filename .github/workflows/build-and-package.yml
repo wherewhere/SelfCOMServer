@@ -20,7 +20,7 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Solution_Name: SelfCOMServer/SelfCOMServer.sln
+      Solution_Name: SelfCOMServer/SelfCOMServer.slnx
       Project_Directory: SelfCOMServer/SelfCOMServer
       Signing_Certificate: SelfCOMServer_TemporaryKey.pfx
 

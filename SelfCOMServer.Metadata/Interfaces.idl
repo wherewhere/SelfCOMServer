@@ -36,17 +36,22 @@ namespace SelfCOMServer.Metadata
     [contract(SelfCOMServerContract, 1)]
     interface IProcessStartInfo
     {
-        IVector<String> Argument { get; };
-        String Arguments { get; set; };
-        Boolean CreateNoWindow { get; set; };
-        String FileName { get; set; };
-        Boolean RedirectStandardError { get; set; };
-        Boolean RedirectStandardInput { get; set; };
-        Boolean RedirectStandardOutput { get; set; };
-        Boolean UseShellExecute { get; set; };
-        String Verb { get; set; };
         String[] Verbs { get; };
+        String Verb { get; set; };
+        Boolean UseShellExecute { get; set; };
+        String UserName { get; set; };
+        Boolean RedirectStandardOutput { get; set; };
+        Boolean RedirectStandardInput { get; set; };
+        Boolean RedirectStandardError { get; set; };
         CoProcessWindowStyle WindowStyle { get; set; };
+        Boolean LoadUserProfile { get; set; };
+        String FileName { get; set; };
+        Boolean ErrorDialog { get; set; };
+        Windows.Foundation.Collections.IMap<String, String> Environment { get; };
+        String Domain { get; set; };
+        Boolean CreateNoWindow { get; set; };
+        String Arguments { get; set; };
+        IVector<String> ArgumentList { get; };
         String WorkingDirectory { get; set; };
     }
 
@@ -62,10 +67,11 @@ namespace SelfCOMServer.Metadata
     [contract(SelfCOMServerContract, 1)]
     interface IProcess requires Windows.Foundation.IClosable, Windows.Foundation.IStringable
     {
-        ITextReader StandardError { get; };
-        ITextWriter StandardInput { get; };
         ITextReader StandardOutput { get; };
+        ITextWriter StandardInput { get; };
+        ITextReader StandardError { get; };
         String ProcessName { get; };
+        IProcessStartInfo StartInfo { get; set; };
 
         event CoDataReceivedEventHandler ErrorDataReceived;
         event CoDataReceivedEventHandler OutputDataReceived;
@@ -95,6 +101,6 @@ namespace SelfCOMServer.Metadata
     [contract(SelfCOMServerContract, 1)]
     interface IRemoteThing requires ISetMonitor, Windows.Foundation.IClosable, Windows.Foundation.IStringable
     {
-        IProcessStatic CreateProcessStatic();
+        IProcessStatic ProcessStatic { get; };
     }
 }

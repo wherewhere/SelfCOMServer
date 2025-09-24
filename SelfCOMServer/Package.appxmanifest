@@ -65,6 +65,17 @@
     </Application>
   </Applications>
 
+  <Extensions>
+    <Extension Category="windows.activatableClass.outOfProcessServer">
+      <OutOfProcessServer ServerName="wherewhere.SelfCOMServer.Server">
+        <Path>SelfCOMServer.exe</Path>
+        <Arguments>-RegisterProcessAsWinRTServer</Arguments>
+        <Instancing>singleInstance</Instancing>
+        <ActivatableClass ActivatableClassId="SelfCOMServer.Server" />
+      </OutOfProcessServer>
+    </Extension>
+  </Extensions>
+
   <Capabilities>
     <Capability Name="internetClient" />
     <rescap:Capability Name="runFullTrust" />

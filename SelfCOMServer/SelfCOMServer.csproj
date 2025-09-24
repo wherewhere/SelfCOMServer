@@ -27,6 +27,9 @@
 
   <ItemGroup>
     <CsWinRTInputs Include="..\WinMD\$(Platform)\$(Configuration)\SelfCOMServer.Metadata.winmd" />
+    <Content Include="..\WinMD\$(Platform)\$(Configuration)\SelfCOMServer.Metadata.winmd" Visible="False">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -40,8 +43,5 @@
   <ItemGroup>
     <None Remove="AppPackages\**" />
     <None Remove="BundleArtifacts\**" />
-    <Content Include="..\WinMD\$(Platform)\$(Configuration)\SelfCOMServer.Metadata.winmd" Visible="False">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 </Project>

@@ -12,11 +12,11 @@ namespace SelfCOMServer.Common
     {
         public partial string ProcessName { get; }
         [WinRTWrapperMarshalUsing(typeof(RemoteTextReader))]
-        public partial ITextReader StandardError { get; }
+        public partial ITextReader StandardOutput { get; }
         [WinRTWrapperMarshalUsing(typeof(RemoteTextWriter))]
         public partial ITextWriter StandardInput { get; }
         [WinRTWrapperMarshalUsing(typeof(RemoteTextReader))]
-        public partial ITextReader StandardOutput { get; }
+        public partial ITextReader StandardError { get; }
         [WinRTWrapperMarshalUsing(typeof(RemoteProcessStartInfo))]
         public partial IProcessStartInfo StartInfo { get; set; }
 
@@ -73,11 +73,17 @@ namespace SelfCOMServer.Common
     /// <inheritdoc cref="Process"/>
     public sealed partial class ProcessStatic : IProcessStatic
     {
+        /// <summary>
+        /// Gets the singleton instance of the <see cref="ProcessStatic"/> class.
+        /// </summary>
+        public static ProcessStatic Instance { get; } = new();
+
         /// <inheritdoc cref="Process.GetProcesses()"/>
         public IProcess[] GetProcesses() => [.. Process.GetProcesses().Select(x => new RemoteProcess(x))];
 
+        /// <inheritdoc cref="Process.Start(ProcessStartInfo)"/>
         public IProcess Start(IProcessStartInfo startInfo) =>
-            Process.Start(startInfo.ToProcessStartInfo()) is Process process
+            Process.Start(RemoteProcessStartInfo.ConvertToManaged(startInfo)) is Process process
                 ? new RemoteProcess(process) : null;
     }
 }

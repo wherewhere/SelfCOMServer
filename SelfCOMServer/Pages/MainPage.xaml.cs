@@ -26,7 +26,7 @@ namespace SelfCOMServer.Pages
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             IRemoteThing remote = Factory.CreateRemoteThing();
-            process = remote.CreateProcessStatic().Start(new RemoteProcessStartInfo("cmd")
+            process = remote.ProcessStatic.Start(new RemoteProcessStartInfo("cmd")
             {
                 CreateNoWindow = true,
                 RedirectStandardError = true,

@@ -21,18 +21,13 @@ namespace SelfCOMServer.Common
         /// <inheritdoc cref="ProcessStartInfo(string, IEnumerable{string})"/>
         public RemoteProcessStartInfo(string fileName, IEnumerable<string> arguments) : this(new ProcessStartInfo(fileName, arguments)) { }
 
-        /// <inheritdoc cref="ProcessStartInfo.Argument"/>
-        public IList<string> Argument => target.ArgumentList.AsVector();
-
-        public partial string Arguments { get; set; }
-        public partial bool CreateNoWindow { get; set; }
-        public partial string FileName { get; set; }
-        public partial bool RedirectStandardError { get; set; }
-        public partial bool RedirectStandardInput { get; set; }
-        public partial bool RedirectStandardOutput { get; set; }
-        public partial bool UseShellExecute { get; set; }
-        public partial string Verb { get; set; }
         public partial string[] Verbs { get; }
+        public partial string Verb { get; set; }
+        public partial bool UseShellExecute { get; set; }
+        public partial string UserName { get; set; }
+        public partial bool RedirectStandardOutput { get; set; }
+        public partial bool RedirectStandardInput { get; set; }
+        public partial bool RedirectStandardError { get; set; }
 
         /// <inheritdoc cref="ProcessStartInfo.WindowStyle"/>
         public CoProcessWindowStyle WindowStyle
@@ -40,6 +35,17 @@ namespace SelfCOMServer.Common
             get => (CoProcessWindowStyle)target.WindowStyle;
             set => target.WindowStyle = (ProcessWindowStyle)value;
         }
+
+        public partial bool LoadUserProfile { get; set; }
+        public partial string FileName { get; set; }
+        public partial bool ErrorDialog { get; set; }
+        public partial IDictionary<string, string> Environment { get; }
+        public partial string Domain { get; set; }
+        public partial bool CreateNoWindow { get; set; }
+        public partial string Arguments { get; set; }
+
+        /// <inheritdoc cref="ProcessStartInfo.Argument"/>
+        public IList<string> ArgumentList => target.ArgumentList;
 
         public partial string WorkingDirectory { get; set; }
 
@@ -64,12 +70,5 @@ namespace SelfCOMServer.Common
                     WindowStyle = (ProcessWindowStyle)wrapper.WindowStyle,
                     WorkingDirectory = wrapper.WorkingDirectory
                 };
-    }
-
-    public static class ProcessStartInfoExtensions
-    {
-        /// <inheritdoc cref="RemoteProcessStartInfo.ConvertToManaged(IProcessStartInfo)"/>
-        public static ProcessStartInfo ToProcessStartInfo(this IProcessStartInfo startInfo) =>
-            RemoteProcessStartInfo.ConvertToManaged(startInfo);
     }
 }
