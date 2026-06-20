@@ -64,6 +64,12 @@ namespace SelfCOMServer.Metadata
     [contract(SelfCOMServerContract, 1)]
     delegate void CoDataReceivedEventHandler(IInspectable sender, CoDataReceivedEventArgs e);
 
+    [uuid("C8B5B6C4-37A0-4A95-8A4B-851BA36FF684")]
+    [contract(SelfCOMServerContract, 1)]
+    interface IEventArgs
+    {
+    }
+
     [contract(SelfCOMServerContract, 1)]
     interface IProcess requires Windows.Foundation.IClosable, Windows.Foundation.IStringable
     {
@@ -72,7 +78,10 @@ namespace SelfCOMServer.Metadata
         ITextReader StandardError { get; };
         String ProcessName { get; };
         IProcessStartInfo StartInfo { get; set; };
+        Int32 ExitCode { get; };
+        Boolean EnableRaisingEvents { get; set; };
 
+        event Windows.Foundation.EventHandler<IEventArgs> Exited;
         event CoDataReceivedEventHandler ErrorDataReceived;
         event CoDataReceivedEventHandler OutputDataReceived;
 

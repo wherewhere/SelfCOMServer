@@ -2,6 +2,7 @@
   <PropertyGroup>
     <ApplicationEntryPoint>SelfCOMServer.App</ApplicationEntryPoint>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <CsWin32RunAsBuildTask>True</CsWin32RunAsBuildTask>
     <CsWinRTIncludes>SelfCOMServer.Metadata</CsWinRTIncludes>
     <DefaultLanguage>en-US</DefaultLanguage>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
@@ -11,14 +12,14 @@
     <PublishAot>True</PublishAot>
     <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <TargetFramework>net8.0-windows10.0.26100.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <UseUwp>True</UseUwp>
     <VersionPrefix>0.0.1</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.259" PrivateAssets="all">
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.298" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
@@ -30,8 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <CsWinRTInputs Include="..\WinMD\$(Platform)\$(Configuration)\SelfCOMServer.Metadata.winmd" />
-    <Content Include="..\WinMD\$(Platform)\$(Configuration)\SelfCOMServer.Metadata.winmd" Visible="False">
+    <CsWinRTInputs Include="..\WinMD\$(PlatformTarget)\$(Configuration)\SelfCOMServer.Metadata.winmd" />
+    <Content Include="..\WinMD\$(PlatformTarget)\$(Configuration)\SelfCOMServer.Metadata.winmd" Visible="False">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

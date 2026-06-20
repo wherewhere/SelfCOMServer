@@ -47,6 +47,7 @@
                 FontFamily="{ThemeResource CodeThemeFontFamily}"
                 IsSpellCheckEnabled="False" />
             <Button
+                x:Name="SendButton"
                 Grid.Column="1"
                 VerticalAlignment="Stretch"
                 Click="Button_Click"

@@ -25,8 +25,7 @@ namespace SelfCOMServer.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            IRemoteThing remote = Factory.CreateRemoteThing();
-            process = remote.ProcessStatic.Start(new RemoteProcessStartInfo("cmd")
+            process = IProcess.Start(new RemoteProcessStartInfo("cmd")
             {
                 CreateNoWindow = true,
                 RedirectStandardError = true,
@@ -37,8 +36,10 @@ namespace SelfCOMServer.Pages
             AppTitle.Text = process.ProcessName;
             process.OutputDataReceived += OnOutputDataReceived;
             process.ErrorDataReceived += OnErrorDataReceived;
+            process.Exited += OnProcessExited;
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+            process.EnableRaisingEvents = true;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e) =>
@@ -46,6 +47,14 @@ namespace SelfCOMServer.Pages
 
         private IAsyncAction SendCommandAsync(string command) =>
             process.StandardInput.WriteAsync($"{command}{Environment.NewLine}");
+
+        private async void OnProcessExited(object sender, IEventArgs e)
+        {
+            await Dispatcher.ResumeForegroundAsync();
+            Input.IsReadOnly = true;
+            Input.Text = $"Process exited with code {process.ExitCode}";
+            SendButton.IsEnabled = false;
+        }
 
         private async void OnOutputDataReceived(object sender, CoDataReceivedEventArgs e)
         {

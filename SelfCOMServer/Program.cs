@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI.Xaml;
+using Windows.Win32;
+using Windows.Win32.System.WinRT;
 
 namespace SelfCOMServer
 {
@@ -72,7 +74,6 @@ namespace SelfCOMServer
 
     public static partial class Program
     {
-        private const int RO_INIT_MULTITHREADED = 1;
         private static ManualResetEventSlim comServerExitEvent;
 
         public static int RefCount { get; set; }
@@ -91,7 +92,7 @@ namespace SelfCOMServer
                     factory.RevokeClassObject();
                     break;
                 case ["-RegisterProcessAsWinRTServer", ..]:
-                    _ = RoInitialize(RO_INIT_MULTITHREADED);
+                    _ = PInvoke.RoInitialize(RO_INIT_TYPE.RO_INIT_MULTITHREADED);
                     comServerExitEvent = new ManualResetEventSlim(false);
                     comServerExitEvent.Reset();
                     factory = new RemoteThingFactory();
@@ -119,8 +120,5 @@ namespace SelfCOMServer
                 comServerExitEvent?.Set();
             }
         }
-
-        [LibraryImport("api-ms-win-core-winrt-l1-1-0.dll")]
-        private static partial int RoInitialize(int initType);
     }
 }

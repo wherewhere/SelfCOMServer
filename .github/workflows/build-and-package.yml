@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -40,7 +40,7 @@ jobs:
 
       # Install the .NET Core App workload
       - name: Install .NET Core App
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -51,8 +51,8 @@ jobs:
           msbuild-architecture: x64
 
       # Restore the application to populate the obj folder with RuntimeIdentifiers
-      - name: Restore the application
-        run: msbuild $env:Solution_Name `
+      - name: Restore the application (x64)
+        run: msbuild $env:Solution_Name /m `
           /t:Restore `
           /p:Configuration=$env:Configuration `
           /p:Platform=$env:Platform
@@ -60,9 +60,27 @@ jobs:
           Configuration: Release
           Platform: x64
 
+      - name: Restore the application (x86)
+        run: msbuild $env:Solution_Name /m `
+          /t:Restore `
+          /p:Configuration=$env:Configuration `
+          /p:Platform=$env:Platform
+        env:
+          Configuration: Release
+          Platform: x86
+
+      - name: Restore the application (ARM64)
+        run: msbuild $env:Solution_Name /m `
+          /t:Restore `
+          /p:Configuration=$env:Configuration `
+          /p:Platform=$env:Platform
+        env:
+          Configuration: Release
+          Platform: ARM64
+
       # Create the app package by building and packaging the Windows Application Packaging project
       - name: Create the app package
-        run: msbuild $env:Solution_Name `
+        run: msbuild $env:Solution_Name /m `
           /p:AppxBundlePlatforms=$env:Appx_Bundle_Platforms `
           /p:Configuration=$env:Configuration `
           /p:Platform=$env:Platform `
@@ -76,7 +94,7 @@ jobs:
           /p:PackageCertificatePassword=$env:Password
         env:
           Appx_Bundle: Always
-          Appx_Bundle_Platforms: x64|ARM64
+          Appx_Bundle_Platforms: x86|x64|ARM64
           Appx_Package_Build_Mode: SideloadOnly
           Appx_Package_Dir: AppxPackages\
           Configuration: Release
@@ -86,7 +104,7 @@ jobs:
 
       # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: MSIX Package
           path: SelfCOMServer/AppxPackages/**

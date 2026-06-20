@@ -4,7 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 using Windows.Win32.System.Com;
+using Windows.Win32.System.WinRT;
 using WinRT;
 using WinRT.Interop;
 
@@ -19,20 +22,20 @@ namespace SelfCOMServer.Common
         private readonly Guid _iid = typeof(TInterface).GUID;
 
         protected uint co_cookie;
-        protected nint ro_cookie;
+        private protected RO_REGISTRATION_COOKIE ro_cookie;
 
         public nint ActivateInstance() => MarshalInspectable<TInterface>.FromManaged(new T());
 
-        public void CreateInstance(nint pUnkOuter, in Guid riid, out nint ppvObject)
+        public unsafe void CreateInstance(object pUnkOuter, Guid* riid, out nint ppvObject)
         {
             ppvObject = 0;
 
-            if (pUnkOuter != 0)
+            if (pUnkOuter != null)
             {
                 Marshal.ThrowExceptionForHR(CLASS_E_NOAGGREGATION);
             }
 
-            if (riid == _iid || riid == Factory.CLSID_IUnknown)
+            if (*riid == _iid || *riid == Factory.CLSID_IUnknown)
             {
                 // Create the instance of the .NET object
                 ppvObject = MarshalInspectable<TInterface>.FromManaged(new T());
@@ -45,20 +48,11 @@ namespace SelfCOMServer.Common
             }
         }
 
-        public void LockServer([MarshalAs(UnmanagedType.Bool)] bool fLock)
-        {
-        }
+        void IClassFactory.LockServer(BOOL fLock) { }
 
-        public void RevokeClassObject()
-        {
-            int hresult = Factory.CoRevokeClassObject(co_cookie);
-            if (hresult < 0)
-            {
-                Marshal.ThrowExceptionForHR(hresult);
-            }
-        }
+        public void RevokeClassObject() => PInvoke.CoRevokeClassObject(co_cookie).ThrowOnFailure();
 
-        public void RevokeActivationFactory() => Factory.RoRevokeActivationFactories(ro_cookie);
+        public void RevokeActivationFactory() => PInvoke.RoRevokeActivationFactories(ro_cookie);
 
         public abstract void RegisterClassObject();
         public abstract void RegisterActivationFactory();
@@ -73,11 +67,11 @@ namespace SelfCOMServer.Common
 
         public override void RegisterClassObject()
         {
-            int hresult = CoRegisterClassObject(
+            int hresult = PInvoke.CoRegisterClassObject(
                 Factory.CLSID_IRemoteThing,
                 this,
-                (uint)CLSCTX.CLSCTX_LOCAL_SERVER,
-                (int)REGCLS.REGCLS_MULTIPLEUSE,
+                CLSCTX.CLSCTX_LOCAL_SERVER,
+                REGCLS.REGCLS_MULTIPLEUSE,
                 out co_cookie);
             if (hresult < 0)
             {
@@ -115,13 +109,10 @@ namespace SelfCOMServer.Common
             }
         }
 
-        [LibraryImport("api-ms-win-core-com-l1-1-0.dll")]
-        private static partial int CoRegisterClassObject(in Guid rclsid, IClassFactory pUnk, uint dwClsContext, int flags, out uint lpdwRegister);
-
         private delegate nint DllGetActivationFactory([In] nint activatableClassId, [Out] out nint factory);
 
         [LibraryImport("api-ms-win-core-winrt-l1-1-0.dll")]
-        private static partial int RoRegisterActivationFactories([In] nint[] activatableClassIds, [In] DllGetActivationFactory[] activationFactoryCallbacks, uint count, out nint cookie);
+        private static partial HRESULT RoRegisterActivationFactories([In] nint[] activatableClassIds, [In] DllGetActivationFactory[] activationFactoryCallbacks, uint count, out RO_REGISTRATION_COOKIE cookie);
     }
 
     public static partial class Factory
@@ -138,12 +129,8 @@ namespace SelfCOMServer.Common
 
         internal static T CreateInstance<T>(in Guid rclsid, CLSCTX dwClsContext = CLSCTX.CLSCTX_INPROC_SERVER)
         {
-            int hresult = CoCreateInstance(rclsid, 0, (uint)dwClsContext, CLSID_IUnknown, out nint result);
-            if (hresult < 0)
-            {
-                Marshal.ThrowExceptionForHR(hresult);
-            }
-            return Marshaler<T>.FromAbi(result);
+            HRESULT hresult = PInvoke.CoCreateInstance(rclsid, null, dwClsContext, CLSID_IUnknown, out nint result);
+            return hresult.Succeeded ? Marshaler<T>.FromAbi(result) : default;
         }
 
         internal static T CreateInstance<T>(in Guid rclsid, CLSCTX dwClsContext, in TimeSpan period) where T : ISetMonitor
@@ -159,12 +146,8 @@ namespace SelfCOMServer.Common
         internal static T ActivateInstance<T>(string activatableClassId)
         {
             nint classId = MarshalString.FromManaged(activatableClassId);
-            int hresult = RoActivateInstance(classId, out nint instance);
-            if (hresult < 0)
-            {
-                Marshal.ThrowExceptionForHR(hresult);
-            }
-            return Marshaler<T>.FromAbi(instance);
+            HRESULT hresult = RoActivateInstance(classId, out nint instance);
+            return hresult.Succeeded ? Marshaler<T>.FromAbi(instance) : default;
         }
 
         internal static T ActivateInstance<T>(string activatableClassId, in TimeSpan period) where T : ISetMonitor
@@ -174,17 +157,8 @@ namespace SelfCOMServer.Common
             return result;
         }
 
-        [LibraryImport("api-ms-win-core-com-l1-1-0.dll")]
-        private static partial int CoCreateInstance(in Guid rclsid, nint pUnkOuter, uint dwClsContext, in Guid riid, out nint ppv);
-
         [LibraryImport("api-ms-win-core-winrt-l1-1-0.dll")]
-        private static partial int RoActivateInstance(nint activatableClassId, out nint instance);
-
-        [LibraryImport("api-ms-win-core-com-l1-1-0.dll")]
-        internal static partial int CoRevokeClassObject(uint dwRegister);
-
-        [LibraryImport("api-ms-win-core-winrt-l1-1-0.dll")]
-        internal static partial void RoRevokeActivationFactories(nint cookie);
+        private static partial HRESULT RoActivateInstance(nint activatableClassId, out nint instance);
     }
 
     /// <summary>
@@ -256,15 +230,5 @@ namespace SelfCOMServer.Common
                 GC.SuppressFinalize(this);
             }
         }
-    }
-
-    // https://docs.microsoft.com/windows/win32/api/unknwn/nn-unknwn-iclassfactory
-    [GeneratedComInterface]
-    [Guid("00000001-0000-0000-C000-000000000046")]
-    public partial interface IClassFactory
-    {
-        void CreateInstance(nint pUnkOuter, in Guid riid, out nint ppvObject);
-
-        void LockServer([MarshalAs(UnmanagedType.Bool)] bool fLock);
     }
 }

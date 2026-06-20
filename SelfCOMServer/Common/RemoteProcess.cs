@@ -1,4 +1,5 @@
 ﻿using SelfCOMServer.Metadata;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -19,6 +20,32 @@ namespace SelfCOMServer.Common
         public partial ITextReader StandardError { get; }
         [WinRTWrapperMarshalUsing(typeof(RemoteProcessStartInfo))]
         public partial IProcessStartInfo StartInfo { get; set; }
+        public partial int ExitCode { get; }
+        public partial bool EnableRaisingEvents { get; set; }
+
+        /// <summary>
+        /// The event weak table for the <see cref="Process.Exited"/> event.
+        /// </summary>
+        private readonly ConditionalWeakTable<EventHandler<IEventArgs>, EventHandler> exited = [];
+        /// <inheritdoc cref="Process.Exited"/>
+        public event EventHandler<IEventArgs> Exited
+        {
+            add
+            {
+                void wrapper(object sender, EventArgs e) => value(this, new RemoteEventArgs(e));
+                EventHandler handler = wrapper;
+                target.Exited += handler;
+                exited.Add(value, handler);
+            }
+            remove
+            {
+                if (exited.TryGetValue(value, out EventHandler handler))
+                {
+                    target.Exited -= handler;
+                    exited.Remove(value);
+                }
+            }
+        }
 
         private readonly ConditionalWeakTable<CoDataReceivedEventHandler, DataReceivedEventHandler> errorDataReceived = [];
         /// <inheritdoc cref="Process.ErrorDataReceived"/>

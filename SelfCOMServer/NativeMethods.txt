@@ -1,2 +1,7 @@
-﻿CLSCTX
-REGCLS
+﻿IClassFactory
+
+CoCreateInstance
+CoRegisterClassObject
+CoRevokeClassObject
+RoInitialize
+RoRevokeActivationFactories
