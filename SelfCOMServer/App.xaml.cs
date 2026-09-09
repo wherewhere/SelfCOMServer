@@ -23,7 +23,7 @@ namespace SelfCOMServer
     /// <summary>
     /// 提供特定于应用程序的行为，以补充默认的应用程序类。
     /// </summary>
-    public partial class App : Application
+    public sealed partial class App : Application
     {
 #pragma warning disable CA1416
         [SupportedOSPlatformGuard("Windows10.0.17134.0")]

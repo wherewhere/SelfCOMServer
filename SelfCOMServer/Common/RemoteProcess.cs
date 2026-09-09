@@ -9,7 +9,7 @@ namespace SelfCOMServer.Common
 {
     [WinRTWrapperMarshaller(typeof(Process), typeof(IProcess))]
     [GenerateWinRTWrapper(typeof(Process), GenerateMember.Defined)]
-    public partial class RemoteProcess : IProcess
+    public sealed partial class RemoteProcess : IProcess
     {
         public partial string ProcessName { get; }
         [WinRTWrapperMarshalUsing(typeof(RemoteTextReader))]

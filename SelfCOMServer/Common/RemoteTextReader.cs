@@ -7,7 +7,7 @@ namespace SelfCOMServer.Common
 {
     [WinRTWrapperMarshaller(typeof(TextReader), typeof(ITextReader))]
     [GenerateWinRTWrapper(typeof(TextReader), GenerateMember.Defined)]
-    public partial class RemoteTextReader : ITextReader
+    public sealed partial class RemoteTextReader : ITextReader
     {
         public partial int Peek();
         public partial IAsyncOperation<string> ReadLineAsync();

@@ -7,7 +7,7 @@ namespace SelfCOMServer.Common
 {
     [WinRTWrapperMarshaller(typeof(TextWriter), typeof(ITextWriter))]
     [GenerateWinRTWrapper(typeof(TextWriter), GenerateMember.Defined)]
-    public partial class RemoteTextWriter : ITextWriter
+    public sealed partial class RemoteTextWriter : ITextWriter
     {
         public partial IAsyncAction FlushAsync();
         public partial IAsyncAction WriteAsync(string value);
